@@ -26,7 +26,7 @@ namespace _Game._Scripts
             _keyActions = new KeyActions();
 
             Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            Cursor.visible = true;
         }
 
         private void OnEnable() =>

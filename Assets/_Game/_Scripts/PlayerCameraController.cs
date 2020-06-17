@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace _Game._Scripts
 {
@@ -37,15 +38,19 @@ namespace _Game._Scripts
             _transform = transform;
             InputManager.KeyActions.Player.MouseLook.performed += context => CameraMovement(context.ReadValue<Vector2>());
         }
-
+        
         /// <summary>
         /// Rotation of the camera's holder and the player
         /// </summary>
         /// <param name="lookPos"></param>
         private void CameraMovement(Vector2 lookPos)
         {
+            // _mouseX += Input.GetAxis("Mouse X") * rotationSpeed;
+            // _mouseY -= Input.GetAxis("Mouse Y") * rotationSpeed;
+            
             _mouseX += lookPos.x * rotationSpeed;
             _mouseY -= lookPos.y * rotationSpeed;
+            
             _mouseY = Mathf.Clamp(_mouseY, -35, 60);
             
             _transform.LookAt(target);

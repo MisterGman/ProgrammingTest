@@ -134,7 +134,7 @@ namespace _Game._Scripts
         {
             while (_movementVector != Vector3.zero)
             {
-                var moveForward =  _movementVector * (Time.deltaTime * movementSpeed);
+                var moveForward =  _movementVector.normalized * (Time.deltaTime * movementSpeed);
                 _transform.Translate(moveForward, Space.Self);
 
                 yield return null;
