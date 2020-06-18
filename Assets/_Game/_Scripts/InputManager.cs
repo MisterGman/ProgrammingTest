@@ -8,6 +8,10 @@ namespace _Game._Scripts
         public static InputManager Instance;
         
         private KeyActions _keyActions;
+        
+        /// <summary>
+        /// Input system
+        /// </summary>
         public static KeyActions KeyActions => Instance._keyActions;
 
         /// <summary>
@@ -15,6 +19,13 @@ namespace _Game._Scripts
         /// </summary>
         public static event DeathCounter DeathCounterEvent;
         public delegate void DeathCounter(int count);
+        
+        
+        /// <summary>
+        /// Event that is called after player has put item on the table
+        /// </summary>
+        public static event EndGame EndGameEvent;
+        public delegate void EndGame();
 
         private void Awake()
         {
@@ -37,5 +48,8 @@ namespace _Game._Scripts
 
         public static void DeathCounterEventInvoker(int count) =>
             DeathCounterEvent?.Invoke(count);
+
+        public static void EndGameEventInvoker() =>
+            EndGameEvent?.Invoke();
     }
 }

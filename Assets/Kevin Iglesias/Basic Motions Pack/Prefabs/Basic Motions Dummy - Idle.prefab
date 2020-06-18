@@ -2287,7 +2287,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9a0de85c6c1c12439874a7161ea7939, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationSpeed: 1
+  rotationSpeed: 15
+  minYRot: -35
+  maxYRot: 60
   player: {fileID: 4516979631634900}
   target: {fileID: 2442653937603587453}
 --- !u!1 &8886295525896016804
