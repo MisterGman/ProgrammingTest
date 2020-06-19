@@ -12,76 +12,64 @@ namespace _Game._Scripts
         /// </summary>
         [field : SerializeField,
                  Tooltip("Serializable class which contains all data to move vertical axes")]
-        private VerticalAxeSettings vertAxe;        
+        private AxeSettings vertAxe;        
         
         /// <summary>
         /// Serializable class which contains all data to move horizontal axes
         /// </summary>
         [field : SerializeField,
                  Tooltip("Serializable class which contains all data to move horizontal axes")]
-        private HorizontalAxeSettings horAxe;
+        private AxeSettings horAxe;
 
         private void Start()
         {
             StartCoroutine(AxeMovement());
         }
 
+        private void UpdateAxePosition(AxeSettings axeSettings, bool isVert)
+        {
+            int vectorIndex = isVert ? 1 : 0;
+            
+            //Calculating vertical Sin movement 
+            for (int i = 0; i < axeSettings.AxeList.Count; i++)
+            {
+                float currSpeed = i % 2 == 0 ? axeSettings.Speed : -axeSettings.Speed;
+                float sin = Mathf.Sin(Time.time * currSpeed);
+
+                if(Math.Abs(sin) >= axeSettings.HoldValue)
+                    continue;
+                    
+                float newY = sin * axeSettings.Height;
+
+                var newPos = axeSettings.AxeList[i].position;
+                newPos[vectorIndex] = newY;
+                
+                axeSettings.AxeList[i].position = newPos;
+            }
+        }
+
         private IEnumerator AxeMovement()
         {
             while (true)
             {
-                //Calculating vertical Sin movement 
-                for (int i = 0; i < vertAxe.VerticalAxeList.Count; i++)
-                {
-                    float currSpeed = vertAxe.Speed;
-                    if (i % 2 == 0)
-                        currSpeed = -currSpeed;
-
-                    if(Math.Abs(Mathf.Sin(Time.time * currSpeed)) >= 0.9f)
-                        continue;
-                    
-                    float newY = Mathf.Sin(Time.time * currSpeed) * vertAxe.Height;
-
-                    var newPos = vertAxe.VerticalAxeList[i].position;
-                    newPos = new Vector3(newPos.x, newY, newPos.z);
-                
-                    vertAxe.VerticalAxeList[i].position = newPos;
-                }
-            
-                //Calculating horizontal Sin movement 
-                for (int i = 0; i < horAxe.HorizontalAxeList.Count; i++)
-                {
-                    float currSpeed = horAxe.Speed;
-                    if (i % 2 == 0)
-                        currSpeed = -currSpeed;
-                    
-                    if(Math.Abs(Mathf.Sin(Time.time * currSpeed)) >= 0.9f)
-                        continue;
-                
-                    float newX = Mathf.Sin(Time.time * currSpeed) * horAxe.Height;
-                    
-                    var newPos = horAxe.HorizontalAxeList[i].position;
-                    newPos = new Vector3(newX, newPos.y, newPos.z);
-
-                    horAxe.HorizontalAxeList[i].position = newPos;
-                }
-
+                UpdateAxePosition(vertAxe, true);
+                UpdateAxePosition(horAxe, false);
                 yield return null;
             }
         }
     }
 
     [Serializable]
-    public class VerticalAxeSettings
+    public class AxeSettings
     {
         [field : SerializeField,
                  Tooltip("List of all vertical axes")]
-        private List<Transform> verticalAxeList;
+        private List<Transform> axeList;
 
         /// <summary>
         /// List of all vertical axes
         /// </summary>
-        public List<Transform> VerticalAxeList => verticalAxeList;
+        public List<Transform> AxeList => axeList;
 
         [field : SerializeField,
                  Tooltip("Speed of moving from -1 to 1")]
@@ -100,36 +88,15 @@ namespace _Game._Scripts
         /// The end point of position during 1 and -1
         /// </summary>
         public float Height => height;
-    }
-    
-    [Serializable]
-    public class HorizontalAxeSettings
-    {
-        [field : SerializeField,
-                 Tooltip("List of all horizontal axes")]
-        private List<Transform> horizontalAxeList;
-
-        /// <summary>
-        /// List of all vertical axes
-        /// </summary>
-        public List<Transform> HorizontalAxeList => horizontalAxeList;
         
-        [field : SerializeField,
-                 Tooltip("Speed of moving from -1 to 1")]
-        private float speed;
+        [field: SerializeField,
+                Range(0.0f, 1.0f),
+                Tooltip("Normalized value at which the axe will be held in the air")]
+        private float holdValue = 0.9f;
 
-        /// <summary>
-        /// Speed of moving from -1 to 1
-        /// </summary>
-        public float Speed => speed;
-        
-        [field : SerializeField,
-                 Tooltip("The end point of position during 1 and -1")]
-        private float height;
-
-        /// <summary>
-        /// The end point of position during 1 and -1
-        /// </summary>
-        public float Height => height;
+        ///<summary>
+        /// Normalized value at which the axe will be held in the air
+        ///</summary>
+        public float HoldValue => holdValue;
     }
 }

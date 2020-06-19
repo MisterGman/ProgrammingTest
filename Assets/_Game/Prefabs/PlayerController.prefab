@@ -96,6 +96,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9a0de85c6c1c12439874a7161ea7939, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  inputManager: {fileID: 0}
   rotationSpeed: 15
   minYRot: -35
   maxYRot: 60
@@ -2286,17 +2287,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f7c62b7f140b254dba39f3e63dc6a2e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  inputManager: {fileID: 0}
   movementSpeed: 5
+  crouchSpeed: 2.5
   flySpeed: 6
   jumpHeight: 8
   groundCheck: {fileID: 2641614068010476587}
-  groundDist: 0.4
+  groundDist: 1
   groundMask:
     serializedVersion: 2
     m_Bits: 256
   rigid: {fileID: 6032041739972171576}
   animator: {fileID: 5973209446851320639}
-  playerTransform: {fileID: 6027525129452337991}
   boxCollider: {fileID: 6032041739972171591}
   handTransform: {fileID: 6027793854886490331}
 --- !u!65 &6032041739972171591

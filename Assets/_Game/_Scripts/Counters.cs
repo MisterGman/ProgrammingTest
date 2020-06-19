@@ -1,15 +1,22 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace _Game._Scripts
 {
     public class Counters : MonoBehaviour
     {
         #region InspectorVisible
-
+        
+        [field : SerializeField,
+                 Tooltip("Input manager of the game")]
+        private InputManager inputManager;
+        
         [field : SerializeField,
                  Tooltip("Timer text")]
         private TextMeshProUGUI timerText;
@@ -40,40 +47,40 @@ namespace _Game._Scripts
 
         [field : SerializeField,
                  Tooltip("Duration of FadeIn")]
-        private float fadeInDuration;
+        private float fadeInDuration = 2f;
         
         #endregion
 
         private float _currentTime;
 
         private Coroutine _timeCounter;
+        private bool _isEndScreenCorRunning;
         
         #region Enable/Disable
 
         private void OnEnable()
         {
-            InputManager.DeathCounterEvent += DeathCountUpdate;
-            InputManager.EndGameEvent += EndGameScore;
+            inputManager.DeathCounterEvent += DeathCountUpdate;
+            inputManager.EndGameEvent += EndGameScore;
         }
 
         private void OnDisable()
         {
-            InputManager.DeathCounterEvent -= DeathCountUpdate;
-            InputManager.EndGameEvent -= EndGameScore;
+            inputManager.DeathCounterEvent -= DeathCountUpdate;
+            inputManager.EndGameEvent -= EndGameScore;
         }
 
         #endregion
-
 
         private void Start()
         {
             _timeCounter = StartCoroutine(TimeCounter());
             fadeIn.canvasRenderer.SetAlpha(0.0f);
             
+#if UNITY_EDITOR
+            endGameButton.onClick.AddListener(EditorApplication.ExitPlaymode);
+#endif
             endGameButton.onClick.AddListener(Application.Quit);
-            
-            congratulationText.SetActive(false);
-            endGameButton.gameObject.SetActive(false);
         }
 
         /// <summary>
@@ -81,9 +88,13 @@ namespace _Game._Scripts
         /// </summary>
         private void EndGameScore()
         {
+            if (_isEndScreenCorRunning)
+                return;
+            
             StopCoroutine(_timeCounter);
 
-            StartCoroutine(EndScreeCoroutine());
+            _isEndScreenCorRunning = true;
+            StartCoroutine(EndScreenCoroutine());
             fadeIn.CrossFadeAlpha(1, fadeInDuration, true);
         }
 
@@ -113,22 +124,17 @@ namespace _Game._Scripts
         /// Stop time and show ui
         /// </summary>
         /// <returns></returns>
-        private IEnumerator EndScreeCoroutine()
+        private IEnumerator EndScreenCoroutine()
         {
             Time.timeScale = 0;
             yield return new WaitForSecondsRealtime(fadeInDuration);
             
-            Cursor.lockState = CursorLockMode.Confined;
-            Cursor.visible = true;
+            inputManager.ChangeCursorState(CursorLockMode.Confined);
             
-            timerText.color = Color.white;
-            timerNameText.color = Color.white;
-            deathText.color = Color.white;
-            deathNameText.color = Color.white;
+            timerText.color = timerNameText.color = deathText.color = deathNameText.color 
+                = Color.white;
             congratulationText.SetActive(true);
             endGameButton.gameObject.SetActive(true);
         }
-        
-        
     }
 }

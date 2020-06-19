@@ -7,6 +7,10 @@ namespace _Game._Scripts
     {
         #region InspectorVisible
 
+        [field : SerializeField,
+                 Tooltip("Input manager of the game")]
+        private InputManager inputManager;
+
         [field: SerializeField,
                 Tooltip("Rotation speed of the camera")]
         private float rotationSpeed;
@@ -34,6 +38,8 @@ namespace _Game._Scripts
         private float _mouseX;
         private float _mouseY;
 
+        private Vector2 _mouseXY = Vector2.zero;
+
         private Vector2 _cameraPos;
         private Transform _transform;
         
@@ -42,16 +48,17 @@ namespace _Game._Scripts
         private void Start()
         {
             _transform = transform;
-            InputManager.KeyActions.Player.MouseLook.performed += context => CameraMovement(context.ReadValue<Vector2>());
+            inputManager.KeyActions.Player.MouseLook.performed += context =>
+                CameraMovement(context.ReadValue<Vector2>());
         }
 
         #region Enable/Disable
 
         private void OnEnable() =>
-            InputManager.DeathCounterEvent += ResetMousePosition;
+            inputManager.DeathCounterEvent += ResetMousePosition;
 
         private void OnDisable() =>
-            InputManager.DeathCounterEvent -= ResetMousePosition;
+            inputManager.DeathCounterEvent -= ResetMousePosition;
 
         #endregion
 
@@ -62,8 +69,7 @@ namespace _Game._Scripts
         /// <param name="x"></param>
         private void ResetMousePosition(int x)
         {
-            _mouseX = 0;
-            _mouseY = 0;
+            _mouseX = _mouseY = 0;
             
             target.rotation = Quaternion.Euler(_mouseY, _mouseX, 0);
             player.rotation = Quaternion.Euler(0, _mouseX, 0);
@@ -75,6 +81,9 @@ namespace _Game._Scripts
         /// <param name="lookPos"></param>
         private void CameraMovement(Vector2 lookPos)
         {
+            // _mouseXY.x += lookPos.x * rotationSpeed * Time.deltaTime;
+            // _mouseXY.y -= lookPos.y * rotationSpeed * Time.deltaTime;
+            
             _mouseX += lookPos.x * rotationSpeed * Time.deltaTime;
             _mouseY -= lookPos.y * rotationSpeed * Time.deltaTime;
             

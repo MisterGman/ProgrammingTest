@@ -8,13 +8,21 @@ namespace _Game._Scripts
     {
         #region InspectorVisible
         
+        [field : SerializeField,
+                 Tooltip("Input manager of the game")]
+        private InputManager inputManager;
+        
         [field: SerializeField,
                 Tooltip("Movement speed of the character")]
-        private float movementSpeed;
+        private float movementSpeed = 5f;        
+        
+        [field: SerializeField,
+                Tooltip("Movement speed of the character")]
+        private float crouchSpeed = 2.5f;
 
         [field : SerializeField,
                  Tooltip("Flying speed of item")]
-        private float flySpeed;
+        private float flySpeed = 6f;
         
         [field : SerializeField,
                  Tooltip("Jump height")]
@@ -39,11 +47,7 @@ namespace _Game._Scripts
         [field : SerializeField,
                  Tooltip("Animator of the player")]
         private Animator animator;
-        
-        [field : SerializeField,
-                 Tooltip("Animator of the player")]
-        private Transform playerTransform;
-        
+
         [field : SerializeField,
                  Tooltip("Boxcollider of the player")]
         private BoxCollider boxCollider;
@@ -64,10 +68,11 @@ namespace _Game._Scripts
 
         private Transform _heldItem;
         private Vector3 _defaultPositionItem;
-        private Vector3 _defaultScale;
         private bool _itemIsHeld;
+
+        private bool _isMoveCorActive;
+        private bool _isCrouch;
         
-        private Coroutine _moveCoroutine;
 
         private static readonly int Speed = Animator.StringToHash("Speed");
         private static readonly int Jump = Animator.StringToHash("Jump");
@@ -79,13 +84,15 @@ namespace _Game._Scripts
         {
             _transform = transform;
 
-            InputManager.KeyActions.Player.Move.performed    += context => MovementHandler(context.ReadValue<Vector2>());
-            InputManager.KeyActions.Player.Move.canceled     += context => MovementHandler(context.ReadValue<Vector2>());
+            inputManager.KeyActions.Player.Move.performed    += context =>
+                MovementHandler(context.ReadValue<Vector2>());
+            inputManager.KeyActions.Player.Move.canceled     += context => 
+                MovementHandler(context.ReadValue<Vector2>());
             
-            InputManager.KeyActions.Player.Jump.performed    += JumpHandler;
+            inputManager.KeyActions.Player.Jump.performed    += JumpHandler;
             
-            InputManager.KeyActions.Player.Crouch.performed  += x => CrouchHandler(true);
-            InputManager.KeyActions.Player.Crouch.canceled   += x =>  CrouchHandler(false);
+            inputManager.KeyActions.Player.Crouch.performed  += x => CrouchHandler(true);
+            inputManager.KeyActions.Player.Crouch.canceled   += x =>  CrouchHandler(false);
         }
         
         private void FixedUpdate()
@@ -111,14 +118,13 @@ namespace _Game._Scripts
                 ResetHeldItem();
             }
 
-            if (_moveCoroutine != null)
+            if (_isMoveCorActive)
                 _movementVector = Vector3.zero;
                         
             _transform.position = Vector3.zero;
             _transform.rotation = Quaternion.identity;
             
-            _deathCounter++;
-            InputManager.DeathCounterEventInvoker(_deathCounter);
+            inputManager.DeathCounterEventInvoker(++_deathCounter);
         }
         
         /// <summary>
@@ -134,8 +140,8 @@ namespace _Game._Scripts
             if (_isGrounded)
                 animator.SetInteger(Speed, input.y > 0 ? 1 : -1);
 
-            if (_moveCoroutine == null)
-                _moveCoroutine = StartCoroutine(Move());
+            if (!_isMoveCorActive)
+                StartCoroutine(Move());
         }
         
         /// <summary>
@@ -148,7 +154,7 @@ namespace _Game._Scripts
                 return;
             
             rigid.AddForce(new Vector3(0, jumpHeight, 0), ForceMode.Impulse);
-            animator.SetBool(Jump, _isGrounded);
+            animator.SetBool(Jump, true);
         }
 
         /// <summary>
@@ -157,20 +163,17 @@ namespace _Game._Scripts
         /// <param name="isCrouch"></param>
         private void CrouchHandler(bool isCrouch)
         {
+            _isCrouch = isCrouch;
+            
             if (isCrouch)
             {
-               // playerTransform.localScale *= 0.4f;
                 movementSpeed /= 2;
                 boxCollider.size /= 3;
             }
             else
             {
-                //playerTransform.localScale = Vector3.one;
                 movementSpeed *= 2;
                 boxCollider.size *= 3;
-
-                if(_itemIsHeld)
-                    _heldItem.localScale = _defaultScale;
             }
         }
 
@@ -185,38 +188,38 @@ namespace _Game._Scripts
         /// <returns></returns>
         private IEnumerator Move()
         {
+            _isMoveCorActive = true;
+
             while (_movementVector != Vector3.zero)
             {
-                var moveForward =  _movementVector.normalized * (Time.deltaTime * movementSpeed);
+                var moveForward =  _movementVector.normalized * (Time.deltaTime * (_isCrouch ? crouchSpeed : movementSpeed));
                 _transform.Translate(moveForward, Space.Self);
 
                 yield return null;
             } 
             
             animator.SetInteger(Speed, 0);
-            _moveCoroutine = null;
+            _isMoveCorActive = false;
+
         }
         
         /// <summary>
         /// Make object fly to another and set it as parent
         /// </summary>
-        /// <param name="whichItem"></param>
+        /// <param name="item"></param>
         /// <param name="destination"></param>
         /// <param name="toPlayer"></param>
         /// <returns></returns>
-        private IEnumerator PickUpRoutine(Transform whichItem, Transform destination, bool toPlayer)
+        private IEnumerator PickUpRoutine(Transform item, Transform destination, bool toPlayer)
         {
             if (toPlayer)
-            {
-                _defaultPositionItem = whichItem.position;
-                _defaultScale = whichItem.localScale;
-            }
+                _defaultPositionItem = item.position;
 
-            whichItem.SetParent(destination);
+            item.SetParent(destination);
 
-            while (whichItem.localPosition != Vector3.zero)
+            while (item.localPosition != Vector3.zero)
             {
-                whichItem.localPosition = Vector3.MoveTowards(whichItem.localPosition,Vector3.zero, 
+                item.localPosition = Vector3.MoveTowards(item.localPosition,Vector3.zero, 
                     flySpeed* Time.deltaTime);
 
                 yield return null;
@@ -224,13 +227,13 @@ namespace _Game._Scripts
 
             if (toPlayer)
             {
-                _heldItem = whichItem;
+                _heldItem = item;
                 _itemIsHeld = true;
             }
             else
             {
                 ResetHeldItem();
-                InputManager.EndGameEventInvoker();
+                inputManager.EndGameEventInvoker();
             }
         }
 
@@ -241,7 +244,6 @@ namespace _Game._Scripts
         {
             _heldItem.rotation = Quaternion.identity;
 
-            _heldItem = null;
             _itemIsHeld = false;
         }
         
@@ -260,8 +262,7 @@ namespace _Game._Scripts
                     StartCoroutine(PickUpRoutine(_heldItem, col.transform, false));
                 }
         }
-
-
+        
         #endregion
     }
 }
