@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,43 +11,62 @@ namespace _Game._Scripts
         /// Serializable class which contains all data to move vertical axes
         /// </summary>
         [field : SerializeField,
-                 Tooltip("")]
+                 Tooltip("Serializable class which contains all data to move vertical axes")]
         private VerticalAxeSettings vertAxe;        
         
         /// <summary>
         /// Serializable class which contains all data to move horizontal axes
         /// </summary>
         [field : SerializeField,
-                 Tooltip("")]
+                 Tooltip("Serializable class which contains all data to move horizontal axes")]
         private HorizontalAxeSettings horAxe;
 
-        private void Update()
+        private void Start()
         {
-            //Calculating vertical Sin movement 
-            for (int i = 0; i < vertAxe.VerticalAxeList.Count; i++)
-            {
-                float currSpeed = vertAxe.Speed;
-                if (i % 2 == 0)
-                    currSpeed = -currSpeed;
-                
-                float newY = Mathf.Sin(Time.time * currSpeed) * vertAxe.Height;
+            StartCoroutine(AxeMovement());
+        }
 
-                var newPos = vertAxe.VerticalAxeList[i].position;
-                newPos = new Vector3(newPos.x, newY, newPos.z);
-                
-                vertAxe.VerticalAxeList[i].position = newPos;
-            }
-            
-            //Calculating horizontal Sin movement 
-            for (int i = 0; i < horAxe.HorizontalAxeList.Count; i++)
+        private IEnumerator AxeMovement()
+        {
+            while (true)
             {
-                float currSpeed = horAxe.Speed;
-                if (i % 2 == 0)
-                    currSpeed = -currSpeed;
+                //Calculating vertical Sin movement 
+                for (int i = 0; i < vertAxe.VerticalAxeList.Count; i++)
+                {
+                    float currSpeed = vertAxe.Speed;
+                    if (i % 2 == 0)
+                        currSpeed = -currSpeed;
+
+                    if(Math.Abs(Mathf.Sin(Time.time * currSpeed)) >= 0.9f)
+                        continue;
+                    
+                    float newY = Mathf.Sin(Time.time * currSpeed) * vertAxe.Height;
+
+                    var newPos = vertAxe.VerticalAxeList[i].position;
+                    newPos = new Vector3(newPos.x, newY, newPos.z);
                 
-                float newX = Mathf.Sin(Time.time * currSpeed) * horAxe.Height;
-                horAxe.HorizontalAxeList[i].position = 
-                    new Vector3(newX, horAxe.HorizontalAxeList[i].position.y, horAxe.HorizontalAxeList[i].position.z);
+                    vertAxe.VerticalAxeList[i].position = newPos;
+                }
+            
+                //Calculating horizontal Sin movement 
+                for (int i = 0; i < horAxe.HorizontalAxeList.Count; i++)
+                {
+                    float currSpeed = horAxe.Speed;
+                    if (i % 2 == 0)
+                        currSpeed = -currSpeed;
+                    
+                    if(Math.Abs(Mathf.Sin(Time.time * currSpeed)) >= 0.9f)
+                        continue;
+                
+                    float newX = Mathf.Sin(Time.time * currSpeed) * horAxe.Height;
+                    
+                    var newPos = horAxe.HorizontalAxeList[i].position;
+                    newPos = new Vector3(newX, newPos.y, newPos.z);
+
+                    horAxe.HorizontalAxeList[i].position = newPos;
+                }
+
+                yield return null;
             }
         }
     }

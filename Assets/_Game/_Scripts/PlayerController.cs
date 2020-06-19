@@ -115,6 +115,7 @@ namespace _Game._Scripts
                 _movementVector = Vector3.zero;
                         
             _transform.position = Vector3.zero;
+            _transform.rotation = Quaternion.identity;
             
             _deathCounter++;
             InputManager.DeathCounterEventInvoker(_deathCounter);
@@ -158,15 +159,15 @@ namespace _Game._Scripts
         {
             if (isCrouch)
             {
-                playerTransform.localScale *= 0.4f;
+               // playerTransform.localScale *= 0.4f;
                 movementSpeed /= 2;
-                boxCollider.enabled = false;
+                boxCollider.size /= 3;
             }
             else
             {
-                playerTransform.localScale = Vector3.one;
+                //playerTransform.localScale = Vector3.one;
                 movementSpeed *= 2;
-                boxCollider.enabled = true;
+                boxCollider.size *= 3;
 
                 if(_itemIsHeld)
                     _heldItem.localScale = _defaultScale;
